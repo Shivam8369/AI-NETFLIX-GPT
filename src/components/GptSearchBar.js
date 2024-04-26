@@ -1,89 +1,144 @@
-import openai from "../utils/openai";
-import { useRef } from "react";
+import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import lang from "../utils/languageConstants";
-import { API_Options } from "../utils/constants";
+import { API_Options, GEMINI_KEY } from "../utils/constants";
 import { addGptMovieResult } from "../utils/gptSlice";
+import openai from "../utils/openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const GptSearchBar = () => {
   const dispatch = useDispatch();
   const langKey = useSelector((store) => store.config.lang);
-  const searchText = useRef(null);
+  const [error, setError] = useState(null); // State to hold error message
+  const genAI = new GoogleGenerativeAI(GEMINI_KEY);
 
-  // search movie in TMDB
+
   const searchMovieTMDB = async (movie) => {
-    const data = await fetch(
-      "https://api.themoviedb.org/3/search/movie?query=" +
-        movie +
-        "&include_adult=false&language=en-US&page=1",
+    try {
+      const response = await fetch(
+        `https://api.themoviedb.org/3/search/movie?query=${movie}&include_adult=false&language=en-US&page=1`,
         API_Options
-    );
-    const json = await data.json();
-
-    return json.results;
+      );
+      if (!response.ok) {
+        throw new Error("TMDB API request failed");
+      }
+      const json = await response.json();
+      return json.results;
+    } catch (error) {
+      throw new Error(`Failed to search TMDB for '${movie}'`);
+    }
   };
 
+
+  // const handleGptSearchClick = async () => {
+  //   const searchTextValue = searchText.current.value.trim();
+
+  //   if (!searchTextValue) {
+  //     setError("Please enter a valid movie query");
+  //     return;
+  //   }
+
+  //   setError(null); // Reset error state before proceeding
+
+  //   const gptQuery = `Act as a Movie Recommendation system and suggest some movies for the query: ${searchTextValue}. Only give me names of 5 movies, comma separated like the example result given ahead. Example Result: Gadar, Sholay, Don, Golmaal, Koi Mil Gaya`;
+
+  //   try {
+  //     const gptResults = await openai.chat.completions.create({
+  //       messages: [{ role: "user", content: gptQuery }],
+  //       model: "gpt-3.5-turbo",
+  //     });
+
+  //     if (!gptResults.choices || !gptResults.choices[0]?.message?.content) {
+  //       throw new Error("GPT response is invalid");
+  //     }
+
+  //     const gptMovies = gptResults.choices[0].message.content
+  //       .split(",")
+  //       .map((movie) => movie.trim());
+
+  //     const tmdbResults = await Promise.all(
+  //       gptMovies.map((movie) => searchMovieTMDB(movie))
+  //     );
+
+  //     dispatch(
+  //       addGptMovieResult({ movieNames: gptMovies, movieResults: tmdbResults })
+  //     );
+  //   }
+
+  //   catch (error) {
+  //     console.error("Error during movie search:", error.message);
+  //     setError(" Movie recommendations powered by GPT are available on request due to paid APIs");
+  //   }
+  // };
+
+
+  // using gemini api key to get movie recommendations
   const handleGptSearchClick = async () => {
-    console.log(searchText.current.value);
-    // Make an API call to GPT API and get Movie Results
 
-    const gptQuery =
-      "Act as a Movie Recommendation system and suggest some movies for the query : " +
-      searchText.current.value +
-      ". only give me names of 5 movies, comma seperated like the example result given ahead. Example Result: Gadar, Sholay, Don, Golmaal, Koi Mil Gaya";
+    const searchTextValue = searchText.current.value.trim();
 
-    const gptResults = await openai.chat.completions.create({
-      messages: [{ role: "user", content: gptQuery }],
-      model: "gpt-3.5-turbo",
-    });
-
-    if (!gptResults.choices) {
-      // TODO: Write Error Handling
-      console.log("check the billing of open-ai");
+    if (!searchTextValue) {
+      setError("Please enter a valid movie query");
       return;
     }
+    try {
+      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+      const prompt =
+        "Act as a movie recommendation system and suggest some movies for the query" +
+        searchText.current.value +
+        ".only give me names of movies,comma separated like example result given ahead.Example result:Gadar,Sholay,Godzilla,Pathaan,3 Idiots.";
+      const result = await model.generateContent(prompt);
+      const gptResults = await result.response;
+      const gptMovies =
+        gptResults.candidates?.[0]?.content?.parts?.[0]?.text.split(",");
 
-    console.log(gptResults.choices?.[0]?.message?.content);
+      if (!gptMovies) {
+        throw new Error("Failed to generate movie suggestions from GPT model.");
+      }
 
-    // Andaz Apna Apna, Hera Pheri, Chupke Chupke, Jaane Bhi Do Yaaro, Padosan
-    const gptMovies = gptResults.choices?.[0]?.message?.content.split(",");
+      const promiseArray = gptMovies.map((movie) => searchMovieTMDB(movie));
+      const tmdbResults = await Promise.all(promiseArray);
 
-    // ["Andaz Apna Apna", "Hera Pheri", "Chupke Chupke", "Jaane Bhi Do Yaaro", "Padosan"]
+      // console.log(tmdbResults);
 
-    // For each movie I will search TMDB API
-
-    const promiseArray = gptMovies.map((movie) => searchMovieTMDB(movie));
-    // [Promise, Promise, Promise, Promise, Promise]
-
-    const tmdbResults = await Promise.all(promiseArray);
-
-    console.log(tmdbResults);
-
-    dispatch(
-      addGptMovieResult({ movieNames: gptMovies, movieResults: tmdbResults })
-    );
+      dispatch(
+        addGptMovieResult({ movieNames: gptMovies, movieResults: tmdbResults })
+      );
+    } catch (error) {
+      // Handle errors
+      console.error("An error occurred:", error.message);
+      setError(
+        " Movie recommendations powered by Gemini are unavailable on request due to paid APIs"
+      );
+    }
   };
 
+  const searchText = React.createRef();
+
   return (
-    <div className="pt-[35%] md:pt-[10%] flex justify-center">
-    <form
-      className="md: w-full flex flex-col gap-3 mt-20 md:w-1/2 bg-black md:grid md:grid-cols-12"
-      onSubmit={(e) => e.preventDefault()}
-    >
-      <input
-        ref={searchText}
-        type="text"
-        className=" p-4 m-4 col-span-9"
-        placeholder={lang[langKey].gptSearchPlaceholder}
-      />
-      <button
-        className="col-span-3 m-4 py-2 px-4 bg-red-700 text-white rounded-lg"
-        onClick={handleGptSearchClick}
-      >
-        {lang[langKey].search}
-      </button>
-    </form>
-  </div>
+   <div className="">
+      <div className="flex justify-center">
+        <form
+          className=" w-11/12 xl:w-1/2 sm:w-1/2 md:w-1/2 lg:w-1/2 mx-auto"
+          onSubmit={(e) => e.preventDefault()}
+        >
+          <input
+            ref={searchText}
+            type="text"
+            className=" xl:text-base lg:text-base md:text-sm sm:text-sm text-xs rounded-l-full font-normal text-black border-black xl:pl-5 md:pl-4 sm:pl-4 pl-3 lg:pl-5 xl:py-3 lg:py-3 md:py-2.5 sm:py-2 py-1.5 xl:w-9/12 md:w-10/12 w-9/12 sm:w-10/12 lg:w-9/12"
+            placeholder={lang[langKey].gptSearchPlaceholder}
+          />
+          <button
+            className="bg-red-700 xl:py-3 lg:py-3 md:py-2.5 sm:py-2 py-1.5 xl:px-8 sm:px-4 px-2 md:px-6 lg:px-8 font-semibold xl:text-base lg:text-base md:text-sm sm:text-sm text-xs  xl:w-3/12 md:w-2.5/12 sm:w-2/12 w-1.5/12 lg:w-3/12 rounded-r-full"
+            onClick={handleGptSearchClick}
+          >
+            {lang[langKey].search}
+          </button>
+          {error && <p className="mt-2 text-sm  text-red-500">{error}</p>}
+        </form>
+      </div>
+    </div>
   );
 };
+
 export default GptSearchBar;

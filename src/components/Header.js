@@ -15,6 +15,7 @@ const Header = () => {
   const navigate = useNavigate();
   const user = useSelector((store) => store.user);
   const showGptSearch = useSelector((store) => store.gpt.showGptSearch);
+
   const handleSignOut = () => {
     signOut(auth)
       .then(() => {})
@@ -42,7 +43,7 @@ const Header = () => {
       }
     });
 
-    // Unsiubscribe when component unmounts
+    // Unsubscribe when component unmounts
     return () => unsubscribe();
   }, []);
 
@@ -59,7 +60,7 @@ const Header = () => {
     <div className="absolute w-screen px-8 py-2 bg-gradient-to-b from-black z-10 flex flex-col md:flex-row justify-between">
       <img className="w-44 mx-auto md:mx-0" src={LOGO} alt="logo" />
       {user && (
-        <div className="flex p-2 justify-between">
+        <div className="flex p-2 justify-between items-center">
           {showGptSearch && (
             <select
               className="p-2 m-2 bg-gray-900 text-white"
@@ -78,17 +79,24 @@ const Header = () => {
           >
             {showGptSearch ? "Homepage" : "GPT Search"}
           </button>
-          <img
-            className=" rounded-full mt-1 hidden md:block w-12 h-12"
-            alt="usericon"
-            src={user_icon}
-          />
-          <button onClick={handleSignOut} className="font-bold text-white ">
-            (Sign Out)
-          </button>
+          <div className="flex items-center">
+            <img
+              className="rounded-full mt-1  md:block w-12 h-12 cursor-pointer"
+              alt="usericon"
+              src={user_icon}
+              onClick={handleSignOut} // Trigger sign-out on click
+            />
+            <button
+              onClick={handleSignOut}
+              className="font-bold hidden md:block text-white ml-2 cursor-pointer"
+            >
+              (Sign Out)
+            </button>
+          </div>
         </div>
       )}
     </div>
   );
 };
+
 export default Header;

@@ -19,7 +19,14 @@ The NETFLIX-GPT App is an AI-driven platform that enhances the Netflix experienc
     - Search Bar
     - Movie Suggestions
 
+## Technologies Used
 
+- React
+- Redux
+- Tailwind CSS
+- Firebase Authentication
+- OpenAI API
+- TMDB API
 
 # Project Setup
 - Before starting the project please add .env file and add TMDB and OPENAI KEY into it.
