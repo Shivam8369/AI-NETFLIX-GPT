@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import lang from "../utils/languageConstants";
 import { API_Options, GEMINI_KEY } from "../utils/constants";
-import { addGptMovieResult } from "../utils/gptSlice";
+import { addGptMovieResult } from "../redux/slices/gptSlice";
 import openai from "../utils/openai";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 

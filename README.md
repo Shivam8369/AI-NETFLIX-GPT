@@ -32,6 +32,7 @@ This application is a Netflix-like web application that combines the features of
 - OpenAI API
 - Gemini API
 - TMDB API
+- Recommendation Movie suggestion
 
 # Project Setup
 - Before starting the project please add .env file and add TMDB and Gemini-API_KEY, OPENAI KEY into it.

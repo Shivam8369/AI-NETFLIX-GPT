@@ -6,9 +6,9 @@ import { SUPPORTED_LANGUAGES } from "../utils/constants";
 import { auth } from "../utils/firebase";
 import LOGO from "../assets/logo.png";
 import user_icon from "../assets/user-icon.png";
-import { addUser, removeUser } from "../utils/userSlice";
-import { toggleGptSearchView } from "../utils/gptSlice";
-import { changeLanguage } from "../utils/configSlice";
+import { addUser, removeUser } from "../redux/slices/userSlice";
+import { toggleGptSearchView } from "../redux/slices/gptSlice";
+import { changeLanguage } from "../redux/slices/configSlice";
 
 const Header = () => {
   const dispatch = useDispatch();

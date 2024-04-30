@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useDispatch ,  useSelector} from "react-redux";
 import { API_Options} from "../utils/constants";
-import { addTopRatedMovie } from "../utils/moviesSlice";
+import { addTopRatedMovie } from "../redux/slices/moviesSlice";
 
 const  useTopRatedMovie = () => {
   // Fetch Data from TMDB API and update store

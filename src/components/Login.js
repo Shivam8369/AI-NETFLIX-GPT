@@ -8,7 +8,7 @@ import {
 } from "firebase/auth";
 import { auth } from "../utils/firebase";
 import { useDispatch } from "react-redux";
-import { addUser } from "../utils/userSlice";
+import { addUser } from "../redux/slices/userSlice";
 import banner from "../assets/Banner.jpg";
 
 const Login = () => {

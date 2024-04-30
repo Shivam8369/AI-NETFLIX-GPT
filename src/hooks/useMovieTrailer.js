@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { API_Options } from "../utils/constants";
-import { addTrailerVideo } from "../utils/moviesSlice";
+import { addTrailerVideo } from "../redux/slices/moviesSlice";
 
 const useMovieTrailer = (movieId) => {
   const dispatch = useDispatch();
@@ -13,6 +13,7 @@ const useMovieTrailer = (movieId) => {
         "https://api.themoviedb.org/3/movie/" + movieId +"/videos?language=en-US",
         API_Options
       );
+
 
       if (!response.ok) {
         throw new Error("Failed to fetch movie videos");
