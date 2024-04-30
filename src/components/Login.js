@@ -9,7 +9,6 @@ import {
 import { auth } from "../utils/firebase";
 import { useDispatch } from "react-redux";
 import { addUser } from "../utils/userSlice";
-// import { BG_URL, USER_AVATAR } from "../utils/constants";
 import banner from "../assets/Banner.jpg";
 
 const Login = () => {
@@ -49,7 +48,6 @@ const Login = () => {
                   photoURL: photoURL,
                 })
               );
-
             })
             .catch((error) => {
               setErrorMessage(error.message);
@@ -69,7 +67,6 @@ const Login = () => {
       )
         .then((userCredential) => {
           // Signed in
-
           // const user = userCredential.user;
         })
         .catch((error) => {

@@ -22,7 +22,7 @@ const Footer = () => {
         </div>
         <hr className="my-6 border-white sm:mx-auto border-[#282727] lg:my-8" />
         <span className="block text-sm text-gray-500 text-center dark:text-gray-400">
-          Crafted By <a href="https://www.linkedin.com/in/okneerajsingh/" rel='noreferrer' target='_blank' className="text-white hover:underline">Shivam Sahu</a>
+          Crafted By <a href="https://www.linkedin.com/in/okneerajsingh/" rel='noreferrer' target='_blank' className="text-white hover:underline"> Shivam Sahu</a>
         </span>
       </div>
     </footer>

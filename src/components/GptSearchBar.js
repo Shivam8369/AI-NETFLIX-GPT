@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import lang from "../utils/languageConstants";
 import { API_Options, GEMINI_KEY } from "../utils/constants";
@@ -8,10 +8,11 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const GptSearchBar = () => {
   const dispatch = useDispatch();
+  const [loadingBtn, setLoadingBtn] = useState(false);
   const langKey = useSelector((store) => store.config.lang);
   const [error, setError] = useState(null); // State to hold error message
   const genAI = new GoogleGenerativeAI(GEMINI_KEY);
-
+  const searchText = useRef(null);
 
   const searchMovieTMDB = async (movie) => {
     try {
@@ -28,7 +29,6 @@ const GptSearchBar = () => {
       throw new Error(`Failed to search TMDB for '${movie}'`);
     }
   };
-
 
   // const handleGptSearchClick = async () => {
   //   const searchTextValue = searchText.current.value.trim();
@@ -71,26 +71,29 @@ const GptSearchBar = () => {
   //   }
   // };
 
-
-  // using gemini api key to get movie recommendations
   const handleGptSearchClick = async () => {
+    setLoadingBtn(true);
 
     const searchTextValue = searchText.current.value.trim();
 
     if (!searchTextValue) {
       setError("Please enter a valid movie query");
+      setLoadingBtn(false);
       return;
     }
+
     try {
       const model = genAI.getGenerativeModel({ model: "gemini-pro" });
       const prompt =
         "Act as a movie recommendation system and suggest some movies for the query" +
-        searchText.current.value +
+        searchTextValue +
         ".only give me names of movies,comma separated like example result given ahead.Example result:Gadar,Sholay,Godzilla,Pathaan,3 Idiots.";
       const result = await model.generateContent(prompt);
       const gptResults = await result.response;
       const gptMovies =
         gptResults.candidates?.[0]?.content?.parts?.[0]?.text.split(",");
+
+      setLoadingBtn(false);
 
       if (!gptMovies) {
         throw new Error("Failed to generate movie suggestions from GPT model.");
@@ -98,8 +101,6 @@ const GptSearchBar = () => {
 
       const promiseArray = gptMovies.map((movie) => searchMovieTMDB(movie));
       const tmdbResults = await Promise.all(promiseArray);
-
-      // console.log(tmdbResults);
 
       dispatch(
         addGptMovieResult({ movieNames: gptMovies, movieResults: tmdbResults })
@@ -110,13 +111,12 @@ const GptSearchBar = () => {
       setError(
         " Movie recommendations powered by Gemini are unavailable on request due to paid APIs"
       );
+      setLoadingBtn(false);
     }
   };
 
-  const searchText = React.createRef();
-
   return (
-   <div className="">
+    <div className="">
       <div className="flex justify-center">
         <form
           className=" w-11/12 xl:w-1/2 sm:w-1/2 md:w-1/2 lg:w-1/2 mx-auto"
@@ -129,10 +129,14 @@ const GptSearchBar = () => {
             placeholder={lang[langKey].gptSearchPlaceholder}
           />
           <button
-            className="bg-red-700 xl:py-3 lg:py-3 md:py-2.5 sm:py-2 py-1.5 xl:px-8 sm:px-4 px-2 md:px-6 lg:px-8 font-semibold xl:text-base lg:text-base md:text-sm sm:text-sm text-xs  xl:w-3/12 md:w-2.5/12 sm:w-2/12 w-1.5/12 lg:w-3/12 rounded-r-full"
+            className="bg-red-700 xl:py-3  lg:py-3 md:py-4 sm:py-2 py-1.5 xl:px-8 sm:px-4 px-2 md:px-6 lg:px-8 font-semibold xl:text-base lg:text-base md:text-sm sm:text-sm text-xs  xl:w-3/12 md:w-2.5/12 sm:w-2/12 w-1.5/12 lg:w-3/12 rounded-r-full"
             onClick={handleGptSearchClick}
           >
-            {lang[langKey].search}
+            {loadingBtn ? (
+              <div className="w-5 text-center ml-3 md:ml-12 h-5 border-t m border-gray-300 border-solid rounded-full animate-spin"></div>
+            ) : (
+              lang[langKey].search
+            )}
           </button>
           {error && <p className="mt-2 text-sm  text-red-500">{error}</p>}
         </form>
