@@ -71,7 +71,7 @@ const Watch = () => {
       <a href="/" className="absolute top-0 left-0 p-4 text-white z-50">
         <img className="w-44 mx-auto md:mx-0" src={logo} alt="logo" />
       </a>
-      <div className="h-screen w-screen">
+      <div className=" md:h-screen w-screen">
         <iframe
           className="h-[416px] md:h-[calc(100%-0px)] w-full pt-[118px] md:pt-[70px]"
           src={`https://www.youtube.com/embed/${youtubeKey}?autoplay=1&mute=0&controls=1&showinfo=0&rel=0&iv_load_policy=3&modestbranding=0`}
