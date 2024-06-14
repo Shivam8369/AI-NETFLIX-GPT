@@ -110,12 +110,14 @@ const Login = () => {
         <input
           ref={email}
           type="text"
+          defaultValue="admin@gmail.com"
           placeholder="Email Address"
           className="p-4 my-4 w-full bg-gray-700"
         />
         <input
           ref={password}
           type="password"
+          defaultValue="Admin@123"
           placeholder="Password"
           className="p-4 my-4 w-full bg-gray-700"
         />
