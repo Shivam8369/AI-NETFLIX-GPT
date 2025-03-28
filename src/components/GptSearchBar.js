@@ -83,15 +83,15 @@ const GptSearchBar = () => {
     }
 
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
       const prompt =
-        "Act as a movie recommendation system and suggest some movies for the query" +
+        "Act as a movie recommendation system and suggest some movies for the query: " +
         searchTextValue +
-        ".only give me names of movies,comma separated like example result given ahead.Example result:Gadar,Sholay,Godzilla,Pathaan,3 Idiots.";
-      const result = await model.generateContent(prompt);
-      const gptResults = await result.response;
-      const gptMovies =
-        gptResults.candidates?.[0]?.content?.parts?.[0]?.text.split(",");
+        ". Only give me names of movies, comma-separated like this: Gadar, Sholay, Godzilla, Pathaan, 3 Idiots.";
+
+      const result = await model.generateContent([prompt]);
+      const response = await result.response;
+      const gptMovies = response.text().split(",");
 
       setLoadingBtn(false);
 
@@ -99,14 +99,14 @@ const GptSearchBar = () => {
         throw new Error("Failed to generate movie suggestions from GPT model.");
       }
 
-      const promiseArray = gptMovies.map((movie) => searchMovieTMDB(movie));
-      const tmdbResults = await Promise.all(promiseArray);
+      const tmdbResults = await Promise.all(
+        gptMovies.map((movie) => searchMovieTMDB(movie.trim()))
+      );
 
       dispatch(
         addGptMovieResult({ movieNames: gptMovies, movieResults: tmdbResults })
       );
     } catch (error) {
-      // Handle errors
       console.error("An error occurred:", error.message);
       setError(
         " Movie recommendations powered by Gemini are unavailable on request due to paid APIs"
@@ -116,31 +116,39 @@ const GptSearchBar = () => {
   };
 
   return (
-    <div className="">
-      <div className="flex justify-center">
-        <form
-          className=" w-11/12 xl:w-1/2 sm:w-1/2 md:w-1/2 lg:w-1/2 mx-auto"
-          onSubmit={(e) => e.preventDefault()}
+    <div className="flex justify-center">
+      <form
+        className="w-11/12 xl:w-1/2 sm:w-1/2 md:w-1/2 lg:w-1/2 mx-auto flex"
+        onSubmit={(e) => e.preventDefault()}
+      >
+        <input
+          ref={searchText}
+          type="text"
+          className="xl:text-base lg:text-base md:text-sm sm:text-sm text-xs 
+                   rounded-l-full font-normal text-black border border-gray-300
+                   xl:pl-5 md:pl-4 sm:pl-4 pl-3 lg:pl-5 xl:py-3 lg:py-3 md:py-2.5 
+                   sm:py-2 py-1.5 xl:w-9/12 md:w-10/12 w-9/12 sm:w-10/12 lg:w-9/12"
+          placeholder={lang[langKey].gptSearchPlaceholder}
+        />
+
+        <button
+          className="bg-red-700 xl:py-3 lg:py-3 md:py-2.5 sm:py-2 py-1.5 
+                   xl:px-8 lg:px-8 md:px-6 sm:px-4 px-2 
+                   font-semibold xl:text-base lg:text-base md:text-sm sm:text-sm text-xs
+                   xl:w-3/12 md:w-2.5/12 sm:w-2/12 w-1.5/12 lg:w-3/12 
+                   rounded-r-full flex items-center justify-center"
+          onClick={handleGptSearchClick}
+          disabled={loadingBtn} // Disable button while loading
         >
-          <input
-            ref={searchText}
-            type="text"
-            className="  xl:text-base lg:text-base md:text-sm sm:text-sm text-xs rounded-l-full font-normal text-black border-black xl:pl-5 md:pl-4 sm:pl-4 pl-3 lg:pl-5 xl:py-3 lg:py-3 md:py-2.5 sm:py-2 py-1.5 xl:w-9/12 md:w-10/12 w-9/12 sm:w-10/12 lg:w-9/12"
-            placeholder={lang[langKey].gptSearchPlaceholder}
-          />
-          <button
-            className="bg-red-700 xl:py-3  w-[24%] lg:py-3 md:py-4 sm:py-2 py-1.5 xl:px-8 sm:px-4 px-2 md:px-6 lg:px-8 font-semibold xl:text-base lg:text-base md:text-sm sm:text-sm text-xs  xl:w-3/12 md:w-2.5/12 sm:w-2/12 w-1.5/12 lg:w-3/12 rounded-r-full"
-            onClick={handleGptSearchClick}
-          >
-            {loadingBtn ? (
-              <div className="w-5 text-center ml-3 md:ml-12 h-5 border-t m border-gray-300 border-solid rounded-full animate-spin"></div>
-            ) : (
-              lang[langKey].search
-            )}
-          </button>
-          {error && <p className="mt-2 text-sm  text-red-500">{error}</p>}
-        </form>
-      </div>
+          {loadingBtn ? (
+            <div className="w-5 h-5 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
+          ) : (
+            lang[langKey].search
+          )}
+        </button>
+      </form>
+
+      {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
     </div>
   );
 };
